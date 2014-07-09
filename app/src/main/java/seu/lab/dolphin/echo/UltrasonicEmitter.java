@@ -3,6 +3,8 @@ package seu.lab.dolphin.echo;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.media.audiofx.Equalizer;
+import android.media.audiofx.LoudnessEnhancer;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -11,10 +13,12 @@ import android.view.MotionEvent;
  */
 public class UltrasonicEmitter {
     private static final int sampleRate = 44100;
-    private double freqOfTone; // hz
+    private double freqOfTone;
     boolean isEchoing = false;
     UltrasonicData data = null;
     private AudioTrack audioTrack;
+    private Equalizer mEqualizer;
+    private double wavelen;
 
     private static int division(int x, int y) {
         if (x < y) {
@@ -38,16 +42,20 @@ public class UltrasonicEmitter {
         this.freqOfTone = freqOfTone;
         data = genTone();
     }
+    
+    UltrasonicEmitter(double freqOfTone, double wavelen){
+        this.freqOfTone = freqOfTone;
+        this.wavelen = sampleRate/freqOfTone;
+        this.wavelen = wavelen;
+        data = genTone();
+    }
 
     UltrasonicData genTone(){
-        double wavelen;
         double max = 32768 ;
         double temp = 0;
         int tmp = 0;
         double a1;
         double a2;
-
-        wavelen = sampleRate/freqOfTone;
 
         int numSamples = ((300 * (int) (1000 * wavelen)) / division(300, (int) (1000 * wavelen)));
         double sample[] = new double[numSamples];
@@ -71,7 +79,6 @@ public class UltrasonicEmitter {
         }catch(Exception e){
             Log.e("e", e.toString());
         }
-
         return new UltrasonicData(numSamples, generatedSnd);
     }
 
@@ -80,14 +87,26 @@ public class UltrasonicEmitter {
         if(isEchoing) return false;
         if(data == null) return false;
         audioTrack = new AudioTrack(
-                AudioManager.STREAM_RING,
+                AudioManager.STREAM_MUSIC,
                 sampleRate,
                 AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
                 data.numSamples,
                 AudioTrack.MODE_STREAM);
 
-        audioTrack.play();
+//        mEqualizer = new Equalizer(0, audioTrack.getAudioSessionId());
+//        mEqualizer.setEnabled(true);
+//        short bands = mEqualizer.getNumberOfBands();
+//        mEqualizer.setBandLevel((short) (bands-1),
+//                (short) (mEqualizer.getBandLevelRange()[0] + mEqualizer.getBandLevelRange()[1]));
+
+        try{
+            audioTrack.play();
+        }catch (Exception e){
+            Log.e("play",e.toString());
+            return false;
+        }
+
         isEchoing = true;
         new Thread(){
             @Override

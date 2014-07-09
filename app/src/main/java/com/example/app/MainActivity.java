@@ -95,6 +95,7 @@ public class MainActivity extends Activity
 
     public void launch() {
         manager.emit(index);
+        //manager.test();
     }
 
     public void stop(){
@@ -108,8 +109,8 @@ public class MainActivity extends Activity
 
 
     public void onProgressChanged(SeekBar seekBar,int progress,boolean fromTouch){
-        index = 2 * progress / 100;
-        mProgressText.setText("now:" + UltrasonicManager.freqTable[index] + "Hz");
+        index = (UltrasonicManager.wavelenTable.length-1) * progress / 100;
+        mProgressText.setText("now: " + UltrasonicManager.wavelenTable[index] + " wavelen");
     }
 
     public void onStartTrackingTouch(SeekBar seekBar){}
